@@ -1,19 +1,39 @@
-use_gpu: True
-model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
-emsize: 200  # size of word embeddings
-nhid: 200  # number of hidden units per layer
-nlayers: 2  # number of layers
-lr: 20  
-clip: 0.25  # gradient clipping
-epochs: 6
-batch_size: 20
-bptt: 35  # sequence length
-dropout: 0.2
-seed: 1111
-log_interval: 500  # report interval
-save: 'model.pt'  # path to save the final model
-onnx_export: ''  # path to export the final model in onnx format
-nhead: 2  # the number of heads in the encoder/decoder of the transformer model
-tied: False  # tie the word embedding and softmax weights
-dry_run: True  # verify the code and the model
+meta_data:
+  pipeline_exp_name: "benchmark"
+  description: "the complete pipeline of language model"
+  num_workers: 1
+  use_gpu: true
+  key_config:
+    common:
+      model_name: "model"
+      nhid: "nhid"
+      nlayers: "nlayers"
+      emsize: "emb"
+      nhead: "nhead"
+
+common:
+  model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
+  nhid: 200  # number of hidden units per layer
+  nlayers: 2  # number of layers
+  emsize: 256  # size of word embeddings
+  nhead: 2  # the number of heads in the encoder/decoder of the transformer model
+
+algo_training:
+  variables:
+    lr: [20]  
+    clip: [0.25]  # gradient clipping
+    epochs: [40]
+    batch_size: [20]
+    bptt: [35]  # sequence length
+    dropout: [0.2]
+    seed: [1111]
+
+  constants:
+    exp_name: "lstm_train"  # exp_name is required
+    script_path: algo_exp_script.py
+    log_interval: 500  # report interval
+    save: 'model.pt'  # path to save the final model
+    onnx_export: ''  # path to export the final model in onnx format
+    tied: False  # tie the word embedding and softmax weights
+    dry_run: False  # verify the code and the model
 

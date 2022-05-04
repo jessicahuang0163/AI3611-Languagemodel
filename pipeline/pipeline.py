@@ -4,7 +4,8 @@ import torch.nn as nn
 import math
 from pipeline import core
 
-def train(model, exp_specs, corpus, epoch, device='cuda'):
+
+def train(model, exp_specs, corpus, epoch, device="cuda"):
     # Turn on training mode which enables dropout.
     model.train()
     total_loss = 0.0
@@ -50,13 +51,16 @@ def train(model, exp_specs, corpus, epoch, device='cuda'):
                     math.exp(cur_loss),
                 )
             )
+            final_loss = cur_loss
             total_loss = 0
             start_time = time.time()
         if exp_specs["dry_run"]:
+            final_loss = total_loss
             break
+    return final_loss
 
 
-def evaluate(model, exp_specs, corpus, mode, device='cuda'):
+def evaluate(model, exp_specs, corpus, mode, device="cuda"):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     total_loss = 0.0

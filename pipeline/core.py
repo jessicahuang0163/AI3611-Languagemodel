@@ -52,7 +52,7 @@ def get_batch(exp_specs, source, i):
     return data, target
 
 
-def export_onnx(path, batch_size, seq_len, device='cuda'):
+def export_onnx(path, batch_size, seq_len, device="cuda"):
     print(
         "The model is also exported in ONNX format at {}.".format(
             os.path.realpath(path)

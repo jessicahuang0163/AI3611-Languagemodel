@@ -1,16 +1,18 @@
 # coding: utf-8
 import argparse
-import time
-import math
 import yaml
-import torch
-import torch.onnx
+import os
 
-import data
-import model
-import pytorch_util as ptu
-from pipeline import core
-from pipeline.pipeline import train, evaluate
+import utils.pytorch_util as ptu
+from utils.config_utils import (
+    create_pipeline_dir,
+    create_pipeline_exp_log_dir,
+    create_pipeline_variant_file,
+)
+from utils.launcher_util import (
+    build_nested_variant_generator,
+    run_multi_processes,
+)
 
 if __name__ == "__main__":
     # Add arguments
@@ -31,104 +33,44 @@ if __name__ == "__main__":
         spec_string = spec_file.read()
         exp_specs = yaml.load(spec_string, Loader=yaml.Loader)
 
-    if exp_specs["use_gpu"]:
+    pipeline_dir = create_pipeline_dir(exp_specs)
+    exp_specs["meta_data"]["pipeline_dir"] = pipeline_dir
+
+    if exp_specs["meta_data"]["use_gpu"]:
         device = ptu.set_gpu_mode(True, args.gpu)
+    exp_specs["meta_data"]["gpu_id"] = args.gpu
 
-    # Set the random seed manually for reproducibility.
-    seed = exp_specs["seed"]
-    ptu.set_seed(seed)
+    algo_exp_specs = exp_specs["algo_training"]
+    algo_exp_specs["common"] = exp_specs["common"]
+    algo_exp_specs["meta_data"] = exp_specs["meta_data"]
+    variants_generate_fn = build_nested_variant_generator(algo_exp_specs)
 
-    ###############################################################################
-    # Load data
-    ###############################################################################
-    print("\nLoading data...\n")
-    data_path = "./data/gigaspeech"
-    corpus = data.Corpus(data_path)
+    variant_paths, algo_log_paths = [], []
 
-    ###############################################################################
-    # Build the model
-    ###############################################################################
-
-    ntokens = len(corpus.dictionary)
-    if exp_specs["model_name"] == "Transformer":
-        model = model.TransformerModel(
-            ntokens,
-            exp_specs["emsize"],
-            exp_specs["nhead"],
-            exp_specs["nhid"],
-            exp_specs["nlayers"],
-            exp_specs["dropout"],
-        ).to(device)
-    else:
-        model = model.RNNModel(
-            exp_specs["model_name"],
-            ntokens,
-            exp_specs["emsize"],
-            exp_specs["nhid"],
-            exp_specs["nlayers"],
-            exp_specs["dropout"],
-            exp_specs["tied"],
-        ).to(device)
-
-    print("Vocabulary Size: ", ntokens)
-    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print("Total number of model parameters: {:.2f}M".format(num_params * 1.0 / 1e6))
-
-    ###############################################################################
-    # Training code
-    ###############################################################################
-    # Loop over epochs.
-    best_val_loss = None
-
-    try:
-        for epoch in range(1, exp_specs['epochs'] + 1):
-            epoch_start_time = time.time()
-            train(model, exp_specs, corpus, epoch)
-            val_loss = evaluate(model, exp_specs, corpus, mode="val")
-            print("-" * 89)
-            print(
-                "| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | "
-                "valid ppl {:8.2f}".format(
-                    epoch,
-                    (time.time() - epoch_start_time),
-                    val_loss,
-                    math.exp(val_loss),
-                )
+    for exp_id, variant in enumerate(variants_generate_fn()):
+        variant_log_dir, is_exist = create_pipeline_exp_log_dir(
+            variant,
+            os.path.join(
+                exp_specs["meta_data"]["pipeline_dir"],
+                exp_specs["common"]["model_name"],
+            ),
+            exp_name=variant["exp_name"],
+            key_config=variant["key_config"].get("algo_training", {}),
+        )
+        algo_log_paths.append(variant_log_dir)
+        if not is_exist:
+            variant["log_dir"] = variant_log_dir
+            variant_file_path = create_pipeline_variant_file(
+                variant,
+                exp_specs["meta_data"]["pipeline_dir"],
+                exp_name=variant["exp_name"],
+                exp_id=exp_id,
             )
-            print("-" * 89)
-            # Save the model if the validation loss is the best we've seen so far.
-            if not best_val_loss or val_loss < best_val_loss:
-                with open(exp_specs["save"], "wb") as f:
-                    torch.save(model, f)
-                best_val_loss = val_loss
-            else:
-                # Anneal the learning rate if no improvement has been seen in the validation dataset.
-                exp_specs["lr"] /= 4.0
-    except KeyboardInterrupt:
-        print("-" * 89)
-        print("Exiting from training early")
+            variant_paths.append(variant_file_path)
 
-    # Load the best saved model.
-    with open(exp_specs["save"], "rb") as f:
-        model = torch.load(f)
-        # after load the rnn params are not a continuous chunk of memory
-        # this makes them a continuous chunk, and will speed up forward pass
-        # Currently, only rnn model supports flatten_parameters function.
-        if exp_specs["model_name"] in ["RNN_TANH", "RNN_RELU", "LSTM", "GRU"]:
-            model.rnn.flatten_parameters()
-
-    # Run on test data.
-    test_loss = evaluate(model, exp_specs, corpus, mode="test")
-    print("=" * 89)
-    print(
-        "| End of training | test loss {:5.2f} | test ppl {:8.2f}".format(
-            test_loss, math.exp(test_loss)
-        )
+    run_multi_processes(
+        algo_exp_specs["constants"]["script_path"],
+        variant_paths,
+        exp_specs["meta_data"]["num_workers"],
+        exp_specs["meta_data"]["gpu_id"],
     )
-    print("=" * 89)
-
-    if len(exp_specs["onnx_export"]) > 0:
-        # Export the model in ONNX format.
-        core.export_onnx(
-            exp_specs["onnx_export"], batch_size=1, seq_len=exp_specs["bptt"]
-        )
