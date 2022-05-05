@@ -1,0 +1,8 @@
+seed: 1111
+use_gpu: true
+
+ckpt_path: "logs/benchmark--model-LSTM--nhid-550--nlayers-2--emb-550--nhead-2/LSTM/lstm_train--lr-20--clip-0.25--ep-40--bs-20--bp-25--drop-0.2/seed-1111/model.pt"
+output_file_path: "output_file/generated.txt"
+num_of_words: 1000
+temperature: 1.0  # higher will increase diversity
+log_interval: 100  # report interval

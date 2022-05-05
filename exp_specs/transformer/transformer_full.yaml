@@ -10,26 +10,33 @@ meta_data:
       nlayers: "nlayers"
       emsize: "emb"
       nhead: "nhead"
+    algo_training:
+      lr: "lr" 
+      clip: "clip"
+      epochs: "ep"
+      batch_size: "bs"
+      bptt: "bp"
+      dropout: "drop"
 
 common:
-  model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
-  nhid: 200  # number of hidden units per layer
+  model_name: 'Transformer'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
+  nhid: 850  # number of hidden units per layer
   nlayers: 2  # number of layers
-  emsize: 256  # size of word embeddings
+  emsize: 850  # size of word embeddings
   nhead: 2  # the number of heads in the encoder/decoder of the transformer model
 
 algo_training:
   variables:
-    lr: [20]  
+    lr: [20, 30, 40]  
     clip: [0.25]  # gradient clipping
     epochs: [40]
-    batch_size: [20]
-    bptt: [35]  # sequence length
-    dropout: [0.2]
+    batch_size: [20, 40, 60]
+    bptt: [25, 35, 45]  # sequence length
+    dropout: [0.2, 0.4, 0.6]
     seed: [1111]
 
   constants:
-    exp_name: "lstm_train"  # exp_name is required
+    exp_name: "transformer_train"  # exp_name is required
     script_path: algo_exp_script.py
     log_interval: 500  # report interval
     save: 'model.pt'  # path to save the final model
