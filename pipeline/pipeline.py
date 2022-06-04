@@ -13,15 +13,19 @@ def train(model, exp_specs, corpus, epoch, device="cuda"):
     train_data = core.batchify(corpus.train, exp_specs["batch_size"], device)
     ntokens = len(corpus.dictionary)
     criterion = nn.NLLLoss()
-    if exp_specs["model_name"] != "Transformer":
+    if (exp_specs["model_name"] != "Transformer") and (exp_specs["model_name"] != "FFNN"):
         hidden = model.init_hidden(exp_specs["batch_size"])
     for batch, i in enumerate(range(0, train_data.size(0) - 1, exp_specs["bptt"])):
         data, targets = core.get_batch(exp_specs, train_data, i)
         # Starting each batch, we detach the hidden state from how it was previously produced.
         # If we didn't, the model would try backpropagating all the way to start of the dataset.
         model.zero_grad()
-        if exp_specs["model_name"] == "Transformer":
+        if (exp_specs["model_name"] == "Transformer") or(exp_specs["model_name"] == "FFNN"):
             output = model(data)
+            output = output.view(-1, ntokens)
+        elif (exp_specs["model_name"] == "MemTransformer"):
+            hidden = core.repackage_hidden(hidden)
+            output = model(data, hidden)
             output = output.view(-1, ntokens)
         else:
             hidden = core.repackage_hidden(hidden)
@@ -74,13 +78,17 @@ def evaluate(model, exp_specs, corpus, mode, device="cuda"):
     else:
         raise ValueError("mode must be either val or test")
 
-    if exp_specs["model_name"] != "Transformer":
+    if (exp_specs["model_name"] != "Transformer") and (exp_specs["model_name"] != "FFNN"):
         hidden = model.init_hidden(eval_batch_size)
     with torch.no_grad():
         for i in range(0, data_source.size(0) - 1, exp_specs["bptt"]):
             data, targets = core.get_batch(exp_specs, data_source, i)
-            if exp_specs["model_name"] == "Transformer":
+            if (exp_specs["model_name"] == "Transformer") or (exp_specs["model_name"] == "FFNN"):
                 output = model(data)
+                output = output.view(-1, ntokens)
+            elif (exp_specs["model_name"] == "MemTransformer"):
+                hidden = core.repackage_hidden(hidden)
+                output = model(data, hidden)
                 output = output.view(-1, ntokens)
             else:
                 output, hidden = model(data, hidden)

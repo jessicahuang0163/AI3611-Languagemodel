@@ -12,10 +12,10 @@ meta_data:
       nhead: "nhead"
 
 common:
-  model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
-  nhid: 250  # number of hidden units per layer
+  model_name: 'FFNN'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer, FFNN)'
+  nhid: 850  # number of hidden units per layer
   nlayers: 2  # number of layers
-  emsize: 250  # size of word embeddings
+  emsize: 850  # size of word embeddings
   nhead: 2  # the number of heads in the encoder/decoder of the transformer model
 
 algo_training:
@@ -23,17 +23,17 @@ algo_training:
     lr: [15]  
     clip: [0.1]  # gradient clipping
     epochs: [40]
-    batch_size: [20]
-    bptt: [45]  # sequence length
-    dropout: [0.2]
+    batch_size: [30]
+    bptt: [25]  # sequence length
+    dropout: [0.4]
     seed: [1111]
 
   constants:
-    exp_name: "lstm_train"  # exp_name is required
+    exp_name: "ffnn_train"  # exp_name is required
     script_path: algo_exp_script.py
     log_interval: 500  # report interval
     save: 'model.pt'  # path to save the final model
     onnx_export: ''  # path to export the final model in onnx format
-    tied: True  # tie the word embedding and softmax weights
+    tied: False  # tie the word embedding and softmax weights
     dry_run: False  # verify the code and the model
 

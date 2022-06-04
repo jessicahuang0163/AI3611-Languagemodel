@@ -1,0 +1,8 @@
+seed: 1111
+use_gpu: true
+
+model_name: "FFNN"
+ckpt_path: "logs/benchmark--model-FFNN--nhid-550--nlayers-2--emb-550--nhead-2/FFNN/ffnn_train/seed-1111/model.pt"
+output_file_path: "result/ffnn/ffnn_medium.txt"
+bptt: 25
+onnx_export: ""

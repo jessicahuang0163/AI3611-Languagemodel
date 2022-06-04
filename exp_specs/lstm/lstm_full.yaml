@@ -10,13 +10,6 @@ meta_data:
       nlayers: "nlayers"
       emsize: "emb"
       nhead: "nhead"
-    algo_training:
-      lr: "lr" 
-      clip: "clip"
-      epochs: "ep"
-      batch_size: "bs"
-      bptt: "bp"
-      dropout: "drop"
 
 common:
   model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
@@ -27,12 +20,12 @@ common:
 
 algo_training:
   variables:
-    lr: [20, 30, 40]  
+    lr: [30]  
     clip: [0.25]  # gradient clipping
     epochs: [40]
-    batch_size: [20, 40, 60]
-    bptt: [25, 35, 45]  # sequence length
-    dropout: [0.2, 0.4, 0.6]
+    batch_size: [30]
+    bptt: [75]  # sequence length
+    dropout: [0.4]
     seed: [1111]
 
   constants:
@@ -41,6 +34,6 @@ algo_training:
     log_interval: 500  # report interval
     save: 'model.pt'  # path to save the final model
     onnx_export: ''  # path to export the final model in onnx format
-    tied: False  # tie the word embedding and softmax weights
+    tied: True  # tie the word embedding and softmax weights
     dry_run: False  # verify the code and the model
 

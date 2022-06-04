@@ -12,7 +12,7 @@ meta_data:
       nhead: "nhead"
 
 common:
-  model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
+  model_name: 'FFNN'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer, FFNN)'
   nhid: 250  # number of hidden units per layer
   nlayers: 2  # number of layers
   emsize: 250  # size of word embeddings
@@ -20,16 +20,16 @@ common:
 
 algo_training:
   variables:
-    lr: [15]  
+    lr: [5]  #done
     clip: [0.1]  # gradient clipping
     epochs: [40]
     batch_size: [20]
-    bptt: [45]  # sequence length
+    bptt: [15]  # sequence length
     dropout: [0.2]
     seed: [1111]
 
   constants:
-    exp_name: "lstm_train"  # exp_name is required
+    exp_name: "ffnn_train"  # exp_name is required
     script_path: algo_exp_script.py
     log_interval: 500  # report interval
     save: 'model.pt'  # path to save the final model

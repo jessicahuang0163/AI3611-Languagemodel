@@ -12,7 +12,7 @@ meta_data:
       nhead: "nhead"
 
 common:
-  model_name: 'LSTM'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
+  model_name: 'MemTransformer'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
   nhid: 250  # number of hidden units per layer
   nlayers: 2  # number of layers
   emsize: 250  # size of word embeddings
@@ -20,20 +20,20 @@ common:
 
 algo_training:
   variables:
-    lr: [15]  
-    clip: [0.1]  # gradient clipping
+    lr: [5, 10, 15]  
+    clip: [0.05]  # gradient clipping
     epochs: [40]
-    batch_size: [20]
-    bptt: [45]  # sequence length
+    batch_size: [20, 30, 40, 50]
+    bptt: [110]  # sequence length
     dropout: [0.2]
     seed: [1111]
 
   constants:
-    exp_name: "lstm_train"  # exp_name is required
+    exp_name: "memtransformer_train"  # exp_name is required
     script_path: algo_exp_script.py
     log_interval: 500  # report interval
     save: 'model.pt'  # path to save the final model
     onnx_export: ''  # path to export the final model in onnx format
-    tied: True  # tie the word embedding and softmax weights
+    tied: False  # tie the word embedding and softmax weights
     dry_run: False  # verify the code and the model
 

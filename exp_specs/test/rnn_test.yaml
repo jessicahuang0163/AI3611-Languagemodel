@@ -1,0 +1,8 @@
+seed: 1111
+use_gpu: true
+
+model_name: "RNN_TANH"
+ckpt_path: "logs/benchmark--model-RNN_TANH--nhid-800--nlayers-3--emb-800--nhead-2/RNN_TANH/rnn_train/seed-1111/model.pt"
+output_file_path: "result/rnn/rnn_full_variant.txt"
+bptt: 25
+onnx_export: ""

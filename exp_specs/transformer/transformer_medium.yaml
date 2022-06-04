@@ -10,13 +10,6 @@ meta_data:
       nlayers: "nlayers"
       emsize: "emb"
       nhead: "nhead"
-    algo_training:
-      lr: "lr" 
-      clip: "clip"
-      epochs: "ep"
-      batch_size: "bs"
-      bptt: "bp"
-      dropout: "drop"
 
 common:
   model_name: 'Transformer'  # 'type of network (RNN_TANH, RNN_RELU, LSTM, GRU, Transformer)'
@@ -27,12 +20,12 @@ common:
 
 algo_training:
   variables:
-    lr: [20, 30, 40]  
-    clip: [0.25]  # gradient clipping
+    lr: [5]  
+    clip: [0.05]  # gradient clipping
     epochs: [40]
-    batch_size: [20, 40, 60]
-    bptt: [25, 35, 45]  # sequence length
-    dropout: [0.2, 0.4, 0.6]
+    batch_size: [20]
+    bptt: [110]  # sequence length
+    dropout: [0.2]
     seed: [1111]
 
   constants:

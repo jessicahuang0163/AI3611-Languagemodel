@@ -2,11 +2,9 @@ import yaml
 import argparse
 import time
 import math
-import os
-import torch
 
 import data
-import model
+import model, newmodel
 import utils.pytorch_util as ptu
 from utils import logger
 from utils.launcher_util import setup_logger
@@ -28,6 +26,23 @@ def experiment(exp_specs, device):
     ntokens = len(corpus.dictionary)
     if exp_specs["model_name"] == "Transformer":
         mymodel = model.TransformerModel(
+            ntokens,
+            exp_specs["emsize"],
+            exp_specs["nhead"],
+            exp_specs["nhid"],
+            exp_specs["nlayers"],
+            exp_specs["dropout"],
+        ).to(device)
+    elif exp_specs["model_name"] == "FFNN":
+        mymodel = model.FFNN(
+            ntokens,
+            exp_specs["emsize"],
+            exp_specs["nhid"],
+            exp_specs["nlayers"],
+            exp_specs["dropout"],
+        ).to(device)
+    elif exp_specs["model_name"] == "MemTransformer":
+        mymodel = newmodel.MemTransformerModel(
             ntokens,
             exp_specs["emsize"],
             exp_specs["nhead"],

@@ -170,3 +170,44 @@ class TransformerModel(nn.Module):
         output = self.transformer_encoder(src, self.src_mask)
         output = self.decoder(output)
         return F.log_softmax(output, dim=-1)
+
+
+class FFNN(nn.Module):
+    """Container module with an encoder, a mlp module, and a decoder."""
+
+    def __init__(self, ntoken, ninp, nhid, nlayers, dropout=0.5):
+        super(FFNN, self).__init__()
+        self.ninp = ninp
+        self.ntoken = ntoken
+        self.nhid = nhid
+        self.nlayers = nlayers
+        self.encoder = nn.Embedding(ntoken, ninp)
+        self.drop = nn.Dropout(dropout)
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ninp, nhid),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+        )
+        self.mlp2 = nn.ModuleList([
+            nn.Linear(nhid, nhid),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+        ] * (nlayers - 1))
+
+        self.decoder = nn.Linear(nhid, ntoken)
+
+        self.init_weights()
+
+    def init_weights(self):
+        initrange = 0.1
+        nn.init.uniform_(self.encoder.weight, -initrange, initrange)
+        nn.init.zeros_(self.decoder.bias)
+        nn.init.uniform_(self.decoder.weight, -initrange, initrange)
+
+    def forward(self, input):
+        emb = self.drop(self.encoder(input))
+        hidden = self.mlp1(emb)
+        for layer in self.mlp2:
+            hidden = layer(hidden)
+        output = self.decoder(hidden)
+        return F.log_softmax(output, dim=-1)
