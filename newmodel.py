@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from model import PositionalEncoding
 
 class MemTransformerModel(nn.Module):
-
     def __init__(self, ntoken, ninp, nhead, nhid, nlayers, dropout=0.5):
         super(MemTransformerModel, self).__init__()
         try:
@@ -64,10 +63,78 @@ class MemTransformerModel(nn.Module):
         output = self.transformer_encoder(src, self.src_mask)
         output = self.decoder(output)
         return F.log_softmax(output, dim=-1)
-    
+
     def init_hidden(self, bsz):
         weight = next(self.lstm.parameters())
         return (
             weight.new_zeros(self.nlayers, bsz, self.nhid),
             weight.new_zeros(self.nlayers, bsz, self.nhid),
+        )
+
+class BiLSTMModel(nn.Module):
+    """Container module with an encoder, a recurrent module, and a decoder."""
+
+    def __init__(
+        self,
+        ntoken,
+        ninp,
+        nhid,
+        nlayers,
+        dropout=0.5,
+        tie_weights=False,
+        bidirectional=True,
+    ):
+        super(BiLSTMModel, self).__init__()
+        self.ntoken = ntoken
+        self.drop = nn.Dropout(dropout)
+        self.encoder = nn.Embedding(ntoken, ninp)
+        self.rnn = nn.LSTM(
+            ninp, nhid, nlayers, dropout=dropout, bidirectional=bidirectional
+        )
+        self.decoder1 = nn.Linear(nhid, ntoken)
+        self.decoder2 = nn.Linear(nhid, ntoken)
+
+        # Optionally tie weights as in:
+        # "Using the Output Embedding to Improve Language Models" (Press & Wolf 2016)
+        # https://arxiv.org/abs/1608.05859
+        # and
+        # "Tying Word Vectors and Word Classifiers: A Loss Framework for Language Modeling" (Inan et al. 2016)
+        # https://arxiv.org/abs/1611.01462
+        if tie_weights:
+            if nhid != ninp:
+                raise ValueError(
+                    "When using the tied flag, nhid must be equal to emsize"
+                )
+            self.decoder1.weight = self.encoder.weight
+            self.decoder2.weight = self.encoder.weight
+
+        self.init_weights()
+        self.nhid = nhid
+        self.nlayers = nlayers
+
+    def init_weights(self):
+        initrange = 0.1
+        nn.init.uniform_(self.encoder.weight, -initrange, initrange)
+        nn.init.zeros_(self.decoder1.bias)
+        nn.init.zeros_(self.decoder2.bias)
+        nn.init.uniform_(self.decoder1.weight, -initrange, initrange)
+        nn.init.uniform_(self.decoder2.weight, -initrange, initrange)
+
+    def forward(self, input, hidden):
+        emb = self.drop(self.encoder(input))
+        output, hidden = self.rnn(emb, hidden)
+        output = self.drop(output)
+        output1, output2 = torch.chunk(output, 2, dim=2)
+        decoded1 = self.decoder1(output1)
+        decoded2 = self.decoder2(output2)
+        decoded = (decoded1 + decoded2) / 2
+        decoded = decoded.view(-1, self.ntoken)
+        return F.log_softmax(decoded, dim=1), hidden
+
+    def init_hidden(self, bsz):
+        weight = next(self.parameters())
+
+        return (
+            weight.new_zeros(2 * self.nlayers, bsz, self.nhid),
+            weight.new_zeros(2 * self.nlayers, bsz, self.nhid),
         )

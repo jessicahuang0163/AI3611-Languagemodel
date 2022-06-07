@@ -184,15 +184,11 @@ class FFNN(nn.Module):
         self.encoder = nn.Embedding(ntoken, ninp)
         self.drop = nn.Dropout(dropout)
         self.mlp1 = nn.Sequential(
-            nn.Linear(ninp, nhid),
-            nn.ReLU(),
-            nn.Dropout(dropout),
+            nn.Linear(ninp, nhid), nn.ReLU(), nn.Dropout(dropout),
         )
-        self.mlp2 = nn.ModuleList([
-            nn.Linear(nhid, nhid),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-        ] * (nlayers - 1))
+        self.mlp2 = nn.ModuleList(
+            [nn.Linear(nhid, nhid), nn.ReLU(), nn.Dropout(dropout),] * (nlayers - 1)
+        )
 
         self.decoder = nn.Linear(nhid, ntoken)
 

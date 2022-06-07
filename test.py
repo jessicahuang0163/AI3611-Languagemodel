@@ -23,7 +23,7 @@ if __name__ == "__main__":
         "-e",
         "--experiment",
         type=str,
-        default="./exp_specs/generator/lstm_generate.yaml",
+        default="./exp_specs/test/lstm_test.yaml",
         help="experiment specification file",
     )
     parser.add_argument("-g", "--gpu", type=int, default=0, help="gpu id")

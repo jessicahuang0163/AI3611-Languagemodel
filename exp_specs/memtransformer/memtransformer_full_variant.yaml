@@ -20,11 +20,11 @@ common:
 
 algo_training:
   variables:
-    lr: [5, 10, 15]  
+    lr: [15]  
     clip: [0.05]  # gradient clipping
     epochs: [40]
-    batch_size: [20, 30, 40, 50]
-    bptt: [110]  # sequence length
+    batch_size: [30]
+    bptt: [160]  # sequence length
     dropout: [0.2]
     seed: [1111]
 

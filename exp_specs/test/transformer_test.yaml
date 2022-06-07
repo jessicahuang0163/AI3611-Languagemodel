@@ -2,7 +2,7 @@ seed: 1111
 use_gpu: true
 
 model_name: "Transformer"
-ckpt_path: "logs/benchmark--model-Transformer--nhid-850--nlayers-2--emb-850--nhead-2/Transformer/transformer_train/seed-1111/model.pt"
-output_file_path: "result/transformer/transformer_full.txt"
-bptt: 170
+ckpt_path: "logs/benchmark--model-Transformer--nhid-250--nlayers-2--emb-250--nhead-2/Transformer/transformer_train/seed-1111/model.pt"
+output_file_path: "result/transformer/transformer_small.txt"
+bptt: 110
 onnx_export: ""

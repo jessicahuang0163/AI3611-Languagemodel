@@ -50,6 +50,15 @@ def experiment(exp_specs, device):
             exp_specs["nlayers"],
             exp_specs["dropout"],
         ).to(device)
+    elif exp_specs["model_name"] == "BiLSTM":
+        mymodel = newmodel.BiLSTMModel(
+            ntokens,
+            exp_specs["emsize"],
+            exp_specs["nhid"],
+            exp_specs["nlayers"],
+            exp_specs["dropout"],
+            exp_specs["tied"],
+        ).to(device)
     else:
         mymodel = model.RNNModel(
             exp_specs["model_name"],

@@ -1,0 +1,8 @@
+seed: 1111
+use_gpu: true
+
+model_name: "MemTransformer"
+ckpt_path: "logs/benchmark--model-MemTransformer--nhid-750--nlayers-2--emb-750--nhead-2/MemTransformer/memtransformer_train/seed-1111/model.pt"
+output_file_path: "result/memtransformer/memtransformer_full.txt"
+bptt: 170
+onnx_export: ""
